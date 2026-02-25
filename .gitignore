@@ -1,0 +1,13 @@
+# Binary
+backend/conciliacion-bancaria
+
+# Database
+backend/conciliacion.db
+backend/conciliacion.db-shm
+backend/conciliacion.db-wal
+
+# Metrics
+metrics.json
+
+# OS
+.DS_Store

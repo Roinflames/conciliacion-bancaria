@@ -1,0 +1,26 @@
+name: Notify Discord
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify Discord
+        run: |
+          curl -s -X POST "${{ secrets.DISCORD_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "embeds": [{
+                "title": "🚀 Push a conciliacion-bancaria",
+                "color": 3066993,
+                "fields": [
+                  {"name": "Rama", "value": "'"${{ github.ref_name }}"'", "inline": true},
+                  {"name": "Autor", "value": "'"${{ github.actor }}"'", "inline": true},
+                  {"name": "Commit", "value": "'"${{ github.event.head_commit.message }}"'", "inline": false}
+                ],
+                "url": "'"${{ github.event.head_commit.url }}"'"
+              }]
+            }'
