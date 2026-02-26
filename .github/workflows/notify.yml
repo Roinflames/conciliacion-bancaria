@@ -1,26 +1,31 @@
-name: Notify Discord
+name: Notify Deploy
 
 on:
   push:
-    branches: [main]
+    branches: [main, master, develop]
 
 jobs:
   notify:
     runs-on: ubuntu-latest
     steps:
-      - name: Notify Discord
+      - uses: actions/checkout@v4
+
+      - name: Notify deploy result
+        if: always()
         run: |
-          curl -s -X POST "${{ secrets.DISCORD_WEBHOOK_URL }}" \
+          STATUS="success"
+          if [ "${{ job.status }}" != "success" ]; then STATUS="failed"; fi
+
+          curl -s -X POST "${{ secrets.DEPLOY_NOTIFY_URL }}/deploy-events" \
             -H "Content-Type: application/json" \
-            -d '{
-              "embeds": [{
-                "title": "🚀 Push a conciliacion-bancaria",
-                "color": 3066993,
-                "fields": [
-                  {"name": "Rama", "value": "'"${{ github.ref_name }}"'", "inline": true},
-                  {"name": "Autor", "value": "'"${{ github.actor }}"'", "inline": true},
-                  {"name": "Commit", "value": "'"${{ github.event.head_commit.message }}"'", "inline": false}
-                ],
-                "url": "'"${{ github.event.head_commit.url }}"'"
-              }]
-            }'
+            -H "Authorization: Bearer ${{ secrets.DEPLOY_NOTIFY_TOKEN }}" \
+            -d "{
+              \"app\":            \"conciliacion-bancaria\",
+              \"env\":            \"${{ github.ref_name }}\",
+              \"version\":        \"${{ github.ref_name }}\",
+              \"status\":         \"$STATUS\",
+              \"commit_sha\":     \"${{ github.sha }}\",
+              \"commit_message\": \"${{ github.event.head_commit.message }}\",
+              \"author\":         \"${{ github.actor }}\",
+              \"commit_url\":     \"https://github.com/${{ github.repository }}/commit/${{ github.sha }}\"
+            }"
